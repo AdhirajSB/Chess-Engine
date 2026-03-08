@@ -1,0 +1,33 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "label": "Build Raylib macOS",
+            "command": "clang++",
+            "args": [
+                "-std=c++17",
+                "src/*.cpp",  // <-- Changed to relative path
+                "-o",
+                "bin/main",   // <-- Changed to relative path
+                "-I", "include", // <-- Changed to relative path
+                "-L", "lib",     // <-- Changed to relative path
+                "-lraylib",
+                "-framework", "CoreVideo",
+                "-framework", "IOKit",
+                "-framework", "Cocoa",
+                "-framework", "GLUT",
+                "-framework", "OpenGL",
+                "-framework", "CoreAudio"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"]
+        }
+    ]
+}
