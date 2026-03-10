@@ -17,15 +17,10 @@ This project utilizes modern C++ features (such as structured bindings), so you 
 
 * **GCC:** `g++` 7.0 or later
 * **Clang:** `clang++` 5.0 or later
-* **MSVC:** Visual Studio 2017 version 15.3 or later
 
 You will also need **Raylib** installed and properly linked to compile the graphical components.
 
-## Getting Started
-
-### Compiling from Source
-
-Before compiling, ensure you have a `bin/` directory in your project root to hold the output executable. If you don't have one, create it using `mkdir bin`.
+### Compilation Instructions
 
 **For macOS:**
 Navigate to the project directory in your terminal and run the following command to compile with all the necessary Raylib frameworks:
