@@ -24,9 +24,11 @@ GameManager::GameManager(){
 
     whiteTurn = true;
     gameOver = false;
-    isDraw = false;
+    isStaleMate = false;
     isCheck = false;
+    isDraw = false;
     winningColor = -1;
+    totalMoves = 0;
 }
 
 GameManager::~GameManager(){
@@ -89,6 +91,12 @@ void GameManager::initBoard(){
 void GameManager::bVb(int depthWhite, int depthBlack, int playSpeed){
     int frameCounter = 0;
     while (!WindowShouldClose()){
+        if (totalMoves >= 300){
+            gameOver = true;
+            isDraw = true;
+            winningColor = 3;
+        }
+
         if (!gameOver && ++ frameCounter >= playSpeed){
             frameCounter = 0;
 
@@ -100,6 +108,7 @@ void GameManager::bVb(int depthWhite, int depthBlack, int playSpeed){
 
             piece* currPiece = board[start.first][start.second];
             if (currPiece != nullptr && currPiece->move(end.first, end.second, board)){ // Valid Move
+                totalMoves++;
 
                 // Auto-Promote to Queen for now
                 if (currPiece->id == PAWN && currPiece->type == _WHITE && currPiece->rank == 0){
@@ -121,13 +130,20 @@ void GameManager::bVb(int depthWhite, int depthBlack, int playSpeed){
                     if (!whiteTurn && p.type == _BLACK) p.doubleStepped = false;
                 }
 
-                if (whiteTurn && m_pieces[0].checkMate(_WHITE, board)){
+                isStaleMate = m_pieces[0].staleMate((whiteTurn ? _WHITE : _BLACK), board);
+                isDraw = m_pieces[0].isDraw(board);
+
+                if (m_pieces[0].checkMate((whiteTurn ? _WHITE : _BLACK), board)){
                     gameOver = true;
-                    winningColor = _BLACK;
+                    winningColor = (whiteTurn ? _BLACK : _WHITE);
                 }
-                else if (!whiteTurn && m_pieces[0].checkMate(_BLACK, board)){
+                else if (isStaleMate){
                     gameOver = true;
-                    winningColor = _WHITE;
+                    winningColor = 2;
+                }
+                else if (isDraw){
+                    gameOver = true;
+                    winningColor = 3;
                 }
             }
         }
@@ -138,15 +154,21 @@ void GameManager::bVb(int depthWhite, int depthBlack, int playSpeed){
             initBoard();
             whiteTurn = true;
             gameOver = false;
-            isDraw = false;
+            isStaleMate = false;
             isCheck = false;
             winningColor = -1;
+            totalMoves = 0;
         }
     }
 }
 
 void GameManager::pvb(int playerColor, int botDepth){
     while (!WindowShouldClose()){
+        if (totalMoves >= 300){
+            gameOver = true;
+            isDraw = true;
+        }
+
         if (!gameOver){
             bool playerTurn = (playerColor == _WHITE ? whiteTurn : !whiteTurn);
 
@@ -178,6 +200,7 @@ void GameManager::pvb(int playerColor, int botDepth){
                             // Lets try to move the piece to the desired position
                             if (currPiece->move(clickedRank, clickedFile, board)){
                                 // Valid Move
+                                totalMoves++;
 
                                 // Auto-Promote to Queen for now
                                 if (currPiece->id == PAWN && currPiece->rank == (playerColor == _WHITE ? 0 : 7)){
@@ -195,16 +218,20 @@ void GameManager::pvb(int playerColor, int botDepth){
                                     if (!whiteTurn && p.type == _BLACK) p.doubleStepped = false;
                                 }
 
-                                isCheck = m_pieces[0].underThreat(1 - playerColor, board);
-                                isDraw = m_pieces[0].staleMate(1 - playerColor, board);
+                                isStaleMate = m_pieces[0].staleMate(1 - playerColor, board);
+                                isDraw = m_pieces[0].isDraw(board);
 
                                 if (m_pieces[0].checkMate(1 - playerColor, board)){
                                     gameOver = true;
                                     winningColor = (whiteTurn ? _BLACK : _WHITE);
                                 }
-                                else if (isDraw){
+                                else if (isStaleMate){
                                     gameOver = true;
                                     winningColor = 2;
+                                }
+                                else if (isDraw){
+                                    gameOver = true;
+                                    winningColor = 3;
                                 }
                             }
                             else{
@@ -229,6 +256,8 @@ void GameManager::pvb(int playerColor, int botDepth){
                 piece* botPiece = board[start.first][start.second];
                     
                 if (botPiece != nullptr && botPiece->move(end.first, end.second, board)) {
+                    totalMoves++;
+
                     if (botPiece->id == PAWN && botPiece->rank == (1 - playerColor == _WHITE ? 0 : 7)) {
                         botPiece->id = QUEEN;
                         botPiece->texture = (1 - playerColor == _WHITE ? m_wQueen : m_bQueen);
@@ -243,13 +272,13 @@ void GameManager::pvb(int playerColor, int botDepth){
                     }
 
                     isCheck = m_pieces[0].underThreat(playerColor, board);
-                    isDraw = m_pieces[0].staleMate(playerColor, board);
+                    isStaleMate = m_pieces[0].staleMate(playerColor, board);
 
                     if (m_pieces[0].checkMate(playerColor, board)) {
                         gameOver = true;
                         winningColor = (playerColor == _WHITE ? _BLACK : _WHITE);
                     } 
-                    else if (isDraw) {
+                    else if (isStaleMate) {
                         gameOver = true;
                         winningColor = 2; // Draw
                     }
@@ -263,15 +292,14 @@ void GameManager::pvb(int playerColor, int botDepth){
             initBoard();
             whiteTurn = true;
             gameOver = false;
-            isDraw = false;
+            isStaleMate = false;
             isCheck = false;
             winningColor = -1;
         }
     }
 }
 
-void GameManager::draw()
-{
+void GameManager::draw(){
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
@@ -311,9 +339,11 @@ void GameManager::draw()
         DrawRectangle(offsetX, 0, 8 * squareSize, 8 * squareSize, ColorAlpha(BLACK, 0.7f));
 
         const char* winText = (winningColor == 0 ? "WHITE WINS!" : "BLACK WINS!");
+
         if (winningColor == _WHITE) winText = "WHITE WINS!";
         else if (winningColor == _BLACK) winText = "BLACK WINS!";
         else if (winningColor == 2) winText = "STALEMATE!";
+        else if (winningColor == 3) winText = "    DRAW!  ";
             
         int fontSize = 40;
         int textWidth = MeasureText(winText, fontSize);

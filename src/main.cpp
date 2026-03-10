@@ -15,7 +15,7 @@ int main(){
         gameManager.pvb(menu.getPlayerColor(), menu.getDepth1());
     }
     else{
-        gameManager.bVb(menu.getDepth1(), menu.getDepth2(), 10);
+        gameManager.bVb(menu.getDepth1(), menu.getDepth2(), 0);
     }
     
     CloseAudioDevice();

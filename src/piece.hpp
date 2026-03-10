@@ -29,5 +29,6 @@ public:
     bool underThreat(int type, piece* board[8][8]) const;
     bool checkMate(int type, piece* board[8][8]) const;
     bool staleMate(int type, piece* board[8][8]) const;
+    bool isDraw(piece* board[8][8]) const;
     void draw(int offsetX) const;
 };

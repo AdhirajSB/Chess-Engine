@@ -15,8 +15,8 @@ private:
 
     Sound m_Move, m_InvalidMove;
 
-    bool whiteTurn, gameOver, isDraw, isCheck;
-    int winningColor;
+    bool whiteTurn, gameOver, isStaleMate, isCheck, isDraw;
+    int totalMoves, winningColor;
 
 public:
     GameManager();

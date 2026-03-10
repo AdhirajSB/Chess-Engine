@@ -422,6 +422,68 @@ bool piece::staleMate(int type, piece *board[8][8]) const{
     return true;
 }
 
+bool piece::isDraw(piece *board[8][8]) const{
+    // Basically i have to do checks for insufficient material
+
+    std::vector<std::pair<int, int>> activePiecesWhite;
+    std::vector<std::pair<int, int>> activePiecesBlack;
+    for (int i = 0; i < 8; i++){
+        for (int j = 0; j < 8; j++){
+            if (board[i][j] != nullptr && board[i][j]->alive){
+                if (board[i][j]->type == _WHITE){
+                    activePiecesWhite.emplace_back(i, j);
+                }
+                else{
+                    activePiecesBlack.emplace_back(i, j);
+                }
+            }
+        }
+    }
+
+    int szWhite = (int)activePiecesWhite.size();
+    int szBlack = (int)activePiecesBlack.size();
+
+    if (szWhite == 1 && szBlack == 1){
+        // One King vs One king
+        return true;
+    }
+    else if (szWhite == 1 && szBlack == 2){
+        // One king vs One king and a knight/bishop
+        for (auto [rank, file]: activePiecesBlack){
+            if (board[rank][file]->id == KNIGHT || board[rank][file]->id == BISHOP){
+                return true;
+            }
+        }
+    }
+    else if (szBlack == 1 && szWhite == 2){
+        // One king vs One king and a knight/bishop
+        for (auto [rank, file]: activePiecesWhite){
+            if (board[rank][file]->id == KNIGHT || board[rank][file]->id == BISHOP){
+                return true;
+            }
+        }
+    }
+    else if (szWhite == 2 && szBlack == 2){
+        // One king and bishop vs One king and bishop
+
+        int whiteBishop = -1, blackBishop = -1;
+        for (auto [rank, file]: activePiecesWhite){
+            if (board[rank][file]->id == BISHOP){
+                whiteBishop = (rank + file) % 2;
+            }
+        }
+        for (auto [rank, file]: activePiecesBlack){
+            if (board[rank][file]->id == BISHOP){
+                blackBishop = (rank + file) % 2;
+            }
+        }
+
+        if (whiteBishop == blackBishop && whiteBishop != -1) return true;
+    }
+
+    return false;
+}
+
 piece::piece(int id, int type, int rank, int file, Texture2D &texture)
 {
     this->id = id;
